@@ -1,33 +1,33 @@
 import { Shopify } from "@shopify/shopify-api";
 
 const FETCH_PRODUCTS_QUERY = `{
-    products(first: 10, reverse: true) {
-      edges {
-        node {
-          id
-          description
-          title
-          legacyResourceId
-          images(first: 1) {
-            edges {
-              node {
-                url
-              }
+  products(first: 10, reverse: true) {
+    edges {
+      node {
+        id
+        description
+        title
+        legacyResourceId
+        images(first: 1) {
+          edges {
+            node {
+              url
             }
           }
-          variants(first: 10) {
-            edges {
-              node {
-                id
-                price
-                title
-              }
+        }
+        variants(first: 10) {
+          edges {
+            node {
+              id
+              price
+              title
             }
           }
         }
       }
     }
   }
+}
 `;
 
 const formatGqlResponse = (res) => {
@@ -42,7 +42,7 @@ const formatGqlResponse = (res) => {
     description: node.description,
     image:
       node.images.edges[0]?.node?.url ||
-      "https://res.cloudinary.com/dci7ukl75/image/upload/v1668205411/defff_uhx4wz.png", // add empty image link here
+      "", // add empty image link here
     variants: node.variants.edges.map(({ node }) => ({
       id: node.id,
       title: node.title,
@@ -55,13 +55,33 @@ export default async function fetchProducts(session) {
   const client = new Shopify.Clients.Graphql(session.shop, session.accessToken);
 
   try {
-    const res = await client.query({
+    const bulkOperation = await client.bulkOperationRunQuery({
       data: {
         query: FETCH_PRODUCTS_QUERY,
       },
     });
 
-    return formatGqlResponse(res);
+    const operationId = bulkOperation.id;
+
+    // Wait until the operation is complete
+    const { status, errorCode, resultUrl } = await client.bulkOperationGet(operationId);
+
+    while (status !== "COMPLETED") {
+      if (status === "FAILED") {
+        throw new Error(`Bulk operation failed with error code ${errorCode}`);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second
+      const operation = await client.bulkOperationGet(operationId);
+      status = operation.status;
+      errorCode = operation.errorCode;
+      resultUrl = operation.resultUrl;
+    }
+
+    // Download the result
+    const result = await client.bulkOperationFetch(resultUrl);
+
+    return formatGqlResponse(result);
   } catch (error) {
     if (error instanceof Shopify.Errors.GraphqlQueryError) {
       throw new Error(
