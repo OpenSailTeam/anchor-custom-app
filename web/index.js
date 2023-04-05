@@ -14,6 +14,10 @@ import { BillingInterval } from "./helpers/ensure-billing.js";
 import { AppInstallations } from "./app_installations.js";
 import fetchProducts from "./helpers/fetch-products.js";
 import productUpdater from "./helpers/product-updater.js";
+import subscribeProductsUpdate from "./helpers/subscribe-products-update.js";
+import subscribeProductsCreate from "./helpers/subscribe-products-create.js";
+import handleProductRecommendations from "./frontend/handle-product-recommendations.js";
+import fetchRecommendations from "./helpers/fetch-recommendation-handles.js";
 
 const USE_ONLINE_TOKENS = false;
 
@@ -24,6 +28,7 @@ const DEV_INDEX_PATH = `${process.cwd()}/frontend/`;
 const PROD_INDEX_PATH = `${process.cwd()}/frontend/dist/`;
 
 const DB_PATH = `${process.cwd()}/database.sqlite`;
+const DEV_WEBHOOK_PATH = process.env.HOST?.concat("/api/webhooks");
 
 Shopify.Context.initialize({
   API_KEY: process.env.SHOPIFY_API_KEY,
@@ -51,6 +56,20 @@ Shopify.Webhooks.Registry.addHandler("APP_UNINSTALLED", {
   path: "/api/webhooks",
   webhookHandler: async (_topic, shop, _body) => {
     await AppInstallations.delete(shop);
+  },
+});
+
+Shopify.Webhooks.Registry.addHandler("PRODUCTS_UPDATE", {
+  path: "/api/webhooks",
+  webhookHandler: async (_topic, shop, _body) => {
+    await handleProductRecommendations(_body);
+  },
+});
+
+Shopify.Webhooks.Registry.addHandler("PRODUCTS_CREATE", {
+  path: "/api/webhooks",
+  webhookHandler: async (_topic, shop, _body) => {
+    console.log("products create webhook handled");
   },
 });
 
@@ -160,6 +179,63 @@ export async function createServer(
   // All endpoints after this point will have access to a request.body
   // attribute, as a result of the express.json() middleware
   app.use(express.json());
+
+  app.get("/api/webhook/subscribe/products/update", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+
+    try {
+      await subscribeProductsUpdate(session, DEV_WEBHOOK_PATH);
+    } catch (e) {
+      console.log(`Failed to process /api/webhook/subscribe/products/update: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ success: status === 200, error });
+  });
+
+  app.get("/api/webhook/subscribe/products/create", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+
+    try {
+      await subscribeProductsCreate(session, DEV_WEBHOOK_PATH);
+    } catch (e) {
+      console.log(`Failed to process /api/webhook/subscribe/products/create: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ success: status === 200, error });
+  });
+
+  app.post("/api/products/fetch/recommendations", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+
+    try {
+      await fetchRecommendations(session, req.body);
+    } catch (e) {
+      console.log(`Failed to process /api/products/fetch/recommendations: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ success: status === 200, error });
+  });
 
   app.post("/api/products/update", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(

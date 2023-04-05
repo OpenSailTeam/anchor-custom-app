@@ -19,7 +19,17 @@ export default function HomePage() {
     url: "/api/products",
   });
 
+  const { update } = useAppQuery({
+    url: "/api/webhook/subscribe/products/update",
+  });
+
+  const { create } = useAppQuery({
+    url: "/api/webhook/subscribe/products/create",
+  });
+
   console.log("data: ", data);
+  console.log("update-data: ", update);
+  console.log("create-data: ", create);
 
   return (
     <Page title="Dashboard">
