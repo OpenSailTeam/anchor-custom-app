@@ -6,6 +6,7 @@ const SUBCRIBE_PRODUCTS_CREATE_QUERY = `mutation ($url: URL!) {
       webhookSubscription: {
         callbackUrl: $url
         format: JSON
+        metafieldNamespaces: "custom"
     })
     {
       webhookSubscription {

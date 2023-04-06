@@ -6,6 +6,7 @@ const SUBCRIBE_PRODUCTS_UPDATE_QUERY = `mutation ($url: URL!) {
       webhookSubscription: {
         callbackUrl: $url
         format: JSON
+        metafieldNamespaces: "custom"
     })
     {
       webhookSubscription {
@@ -23,9 +24,10 @@ const formatGqlResponse = (res) => {
 
   if (!edges.length) return [];
 
-  return edges.map(({ node }) => ({
-    id: node.webhookSubscription.id,
-  }));
+  console.log("LOG: " + node.webhookSubscription.id);
+
+  return node.webhookSubscription.id;
+  
 };
 
 export default async function subscribeProductsUpdate(session, callbackUrl) {

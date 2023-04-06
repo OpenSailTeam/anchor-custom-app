@@ -1,11 +1,8 @@
 import { Shopify } from "@shopify/shopify-api";
 
-const FETCH_RECOMMENDATIONS_QUERY = `query ($id : ID!) {
-    product(id: $id) {
-      handle
-      metafield(namespace: "custom", key: "recommendationHandles") {
-        value
-      }
+const FETCH_ID_QUERY = `query ($handle : String!) {
+    productByHandle(handle: $handle) {
+      id
     }
   }
 `;
@@ -16,20 +13,20 @@ const formatGqlResponse = (res) => {
   if (!edges.length) return [];
 
   return edges.map(({ node }) => ({
-    handle: node.product.handle,
+    id: node.product.id,
   }));
 };
 
-export default async function fetchRecommendations(session, body) {
+export default async function fetchIdFromHandle(session, body) {
   const client = new Shopify.Clients.Graphql(session.shop, session.accessToken);
-  const productId = JSON.parse(body);
+  const handle = JSON.parse(body);
 
   try {
     const res = await client.query({
       data: {
-        query: FETCH_RECOMMENDATIONS_QUERY,
+        query: FETCH_ID_QUERY,
         variables: {
-            id: productId,
+            handle: handle,
         }
       },
     });

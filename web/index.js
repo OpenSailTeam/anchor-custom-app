@@ -16,8 +16,10 @@ import fetchProducts from "./helpers/fetch-products.js";
 import productUpdater from "./helpers/product-updater.js";
 import subscribeProductsUpdate from "./helpers/subscribe-products-update.js";
 import subscribeProductsCreate from "./helpers/subscribe-products-create.js";
-import handleProductRecommendations from "./frontend/handle-product-recommendations.js";
-import fetchRecommendations from "./helpers/fetch-recommendation-handles.js";
+import handleProductRecommendations from "./helpers/handle-product-recommendations.js";
+import fetchIdFromHandle from "./helpers/fetch-recommendation-handles.js";
+
+const axios = require('axios');
 
 const USE_ONLINE_TOKENS = false;
 
@@ -72,6 +74,7 @@ Shopify.Webhooks.Registry.addHandler("PRODUCTS_CREATE", {
     console.log("products create webhook handled");
   },
 });
+
 
 // The transactions with Shopify will always be marked as test transactions, unless NODE_ENV is production.
 // See the ensureBilling helper to learn more about billing in this template.
@@ -140,6 +143,18 @@ export async function createServer(
 
     const products = await fetchProducts(session);
 
+    res.status(200).send({ products });
+  });
+
+  app.get("/api/products/:handle", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+  
+    const products = await fetchIdFromHandle(session, req.params.handle);
+  
     res.status(200).send({ products });
   });
 
@@ -212,25 +227,6 @@ export async function createServer(
       await subscribeProductsCreate(session, DEV_WEBHOOK_PATH);
     } catch (e) {
       console.log(`Failed to process /api/webhook/subscribe/products/create: ${e.message}`);
-      status = 500;
-      error = e.message;
-    }
-    res.status(status).send({ success: status === 200, error });
-  });
-
-  app.post("/api/products/fetch/recommendations", async (req, res) => {
-    const session = await Shopify.Utils.loadCurrentSession(
-      req,
-      res,
-      app.get("use-online-tokens")
-    );
-    let status = 200;
-    let error = null;
-
-    try {
-      await fetchRecommendations(session, req.body);
-    } catch (e) {
-      console.log(`Failed to process /api/products/fetch/recommendations: ${e.message}`);
       status = 500;
       error = e.message;
     }
