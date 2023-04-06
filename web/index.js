@@ -19,7 +19,7 @@ import subscribeProductsCreate from "./helpers/subscribe-products-create.js";
 import handleProductRecommendations from "./helpers/handle-product-recommendations.js";
 import fetchIdFromHandle from "./helpers/fetch-recommendation-handles.js";
 
-const axios = require('axios');
+
 
 const USE_ONLINE_TOKENS = false;
 
@@ -64,14 +64,14 @@ Shopify.Webhooks.Registry.addHandler("APP_UNINSTALLED", {
 Shopify.Webhooks.Registry.addHandler("PRODUCTS_UPDATE", {
   path: "/api/webhooks",
   webhookHandler: async (_topic, shop, _body) => {
-    await handleProductRecommendations(_body);
+    await console.log("products create webhook handled");
   },
 });
 
 Shopify.Webhooks.Registry.addHandler("PRODUCTS_CREATE", {
   path: "/api/webhooks",
   webhookHandler: async (_topic, shop, _body) => {
-    console.log("products create webhook handled");
+    await handleProductRecommendations(_body);
   },
 });
 
