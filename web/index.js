@@ -64,7 +64,7 @@ Shopify.Webhooks.Registry.addHandler("APP_UNINSTALLED", {
 Shopify.Webhooks.Registry.addHandler("PRODUCTS_UPDATE", {
   path: "/api/webhooks",
   webhookHandler: async (_topic, shop, _body) => {
-    await console.log("products create webhook handled");
+    await console.log("products update webhook handled");
   },
 });
 
