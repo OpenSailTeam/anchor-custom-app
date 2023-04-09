@@ -1,7 +1,39 @@
 import { Card, Page, Layout, TextContainer, Heading } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
+import { useSubscription } from "@apollo/client";
+import gql from "graphql-tag";
+
+const BULK_OPERATION_QUERY = gql`
+  mutation ($query: String!, $operationName: String!) {
+    bulkOperationRunQuery(query: $query, operationName: $operationName) {
+      bulkOperation {
+        id
+        status
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+const BULK_OPERATION_SUBSCRIPTION = gql`
+  subscription ($id: ID!) {
+    bulkOperationStatus(id: $id) {
+      id
+      status
+      result {
+        url
+      }
+      errorCode
+      createdAt
+    }
+  }
+`;
 
 export default function PageName() {
+
   return (
     <Page>
       <TitleBar
@@ -20,7 +52,7 @@ export default function PageName() {
       <Layout>
         <Layout.Section>
           <Card sectioned>
-            <Heading>Heading</Heading>
+            <Heading>Heading 1</Heading>
             <TextContainer>
               <p>Body</p>
             </TextContainer>
@@ -44,3 +76,5 @@ export default function PageName() {
     </Page>
   );
 }
+
+
