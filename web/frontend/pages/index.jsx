@@ -44,7 +44,15 @@ export default function HomePage() {
 
   const handleConvertClick = () => {
     setIsConverting(true);
-    // Perform the conversion here
+    handleStartBulkOperation()
+      .then(() => {
+        setIsConverting(false);
+        bulkRefetch();
+      })
+      .catch((error) => {
+        console.error(error);
+        setIsConverting(false);
+      });
   };
 
   const handleDownloadClick = () => {
