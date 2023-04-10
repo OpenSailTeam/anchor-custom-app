@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useEffect } from "react";
 import {
   Card,
   Page,
@@ -7,29 +9,55 @@ import {
   Stack,
   Link,
   Heading,
+  Button,
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
+import { useAuthenticatedFetch } from "../hooks";
 
 import { ProductCard, ProductsCard } from "../components";
 import { useAppQuery } from "../hooks";
 import { ProductList } from "../components/ProductList";
 
 export default function HomePage() {
-  const { data, isLoading, refetch, isRefetching } = useAppQuery({
+  const [bulkStatus, setBulkStatus] = useState("");
+  const [isConverting, setIsConverting] = useState(false);
+
+  const { data, isLoading, refetch } = useAppQuery({
     url: "/api/products",
   });
 
-  const { update } = useAppQuery({
-    url: "/api/webhook/subscribe/products/update",
+  const { data: bulkData, isLoading: isBulkLoading, refetch: bulkRefetch } = useAppQuery({
+    url: "/api/bulk/current",
   });
 
-  const { create } = useAppQuery({
-    url: "/api/webhook/subscribe/products/create",
-  });
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (bulkData?.data?.body?.data?.currentBulkOperation?.status === "COMPLETED") {
+        setBulkStatus("COMPLETED");
+        clearInterval(intervalId);
+      } else {
+        bulkRefetch();
+      }
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [bulkData]);
 
-  console.log("data: ", data);
-  console.log("update-data: ", update);
-  console.log("create-data: ", create);
+  const handleConvertClick = () => {
+    setIsConverting(true);
+    // Perform the conversion here
+  };
+
+  const handleDownloadClick = () => {
+    const url = bulkData?.data?.body?.data?.currentBulkOperation?.url;
+    if (url) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "data.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
 
   return (
     <Page title="Dashboard">
@@ -38,11 +66,23 @@ export default function HomePage() {
           <ProductsCard />
         </Layout.Section>
         <Layout.Section>
-          <ProductList
-            data={data}
-            isLoading={isLoading}
-            isRefetching={isRefetching}
-          />
+          <TextContainer>
+            {bulkStatus !== "COMPLETED" ? (
+              <p>Bulk operation status: {bulkData?.data?.body?.data?.currentBulkOperation?.status}</p>
+            ) : (
+              <Stack>
+                <p>Bulk operation is completed!</p>
+                {!isConverting && (
+                  <Stack spacing="tight" wrap={false}>
+                    <Button onClick={handleConvertClick} primary>
+                      Convert Now
+                    </Button>
+                    <Button onClick={handleDownloadClick}>Download JSON</Button>
+                  </Stack>
+                )}
+              </Stack>
+            )}
+          </TextContainer>
         </Layout.Section>
       </Layout>
     </Page>

@@ -1,7 +1,8 @@
 import { Card, Page, Layout, TextContainer, Heading } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
-import { useSubscription } from "@apollo/client";
+import { useSubscription, useMutation } from "@apollo/client";
 import gql from "graphql-tag";
+import { useState } from "react";
 
 const BULK_OPERATION_QUERY = gql`
   mutation ($query: String!, $operationName: String!) {
@@ -33,6 +34,11 @@ const BULK_OPERATION_SUBSCRIPTION = gql`
 `;
 
 export default function PageName() {
+  const [operationId, setOperationId] = useState(null);
+  const [bulkQueryResult, setBulkQueryResult] = useState(null);
+
+  const [runBulkQuery] = useMutation(BULK_OPERATION_QUERY);
+
 
   return (
     <Page>

@@ -18,6 +18,8 @@ import subscribeProductsUpdate from "./helpers/subscribe-products-update.js";
 import subscribeProductsCreate from "./helpers/subscribe-products-create.js";
 import handleProductRecommendations from "./helpers/handle-product-recommendations.js";
 import fetchIdFromHandle from "./helpers/fetch-recommendation-handles.js";
+import subscribeProductsExport from "./helpers/subscribe-products-export.js";
+import fetchProductsOperation from "./helpers/fetch-bulk-operation.js";
 
 
 
@@ -72,6 +74,13 @@ Shopify.Webhooks.Registry.addHandler("PRODUCTS_CREATE", {
   path: "/api/webhooks",
   webhookHandler: async (_topic, shop, _body) => {
     await handleProductRecommendations(_body);
+  },
+});
+
+Shopify.Webhooks.Registry.addHandler("BULK_OPERATIONS_FINISH", {
+  path: "/api/webhooks",
+  webhookHandler: async (_topic, shop, _body) => {
+    await console.log("products bulk webhook handled: " + _body);
   },
 });
 
@@ -146,18 +155,6 @@ export async function createServer(
     res.status(200).send({ products });
   });
 
-  app.get("/api/products/:handle", async (req, res) => {
-    const session = await Shopify.Utils.loadCurrentSession(
-      req,
-      res,
-      app.get("use-online-tokens")
-    );
-  
-    const products = await fetchIdFromHandle(session, req.params.handle);
-  
-    res.status(200).send({ products });
-  });
-
   app.get("/api/products/count", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
@@ -194,6 +191,39 @@ export async function createServer(
   // All endpoints after this point will have access to a request.body
   // attribute, as a result of the express.json() middleware
   app.use(express.json());
+ 
+  app.get("/api/bulk/current", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+
+    const data = await fetchProductsOperation(session);
+
+    res.status(200).send({ data });
+  });
+
+  app.get("/api/webhook/subscribe/products/export", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+
+    try {
+      await subscribeProductsExport(session, DEV_WEBHOOK_PATH);
+    } catch (e) {
+      console.log(`Failed to process /api/webhook/subscribe/products/export: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ success: status === 200, error });
+  });
 
   app.get("/api/webhook/subscribe/products/update", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(

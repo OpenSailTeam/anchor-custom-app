@@ -1,5 +1,6 @@
-import { EmptyState, Layout, Spinner, Card } from "@shopify/polaris";
+import { EmptyState, Layout, Spinner, Card, Button } from "@shopify/polaris";
 import { ProductCard } from "./ProductCard";
+import { useAppQuery } from "../hooks";
 
 export const ProductList = ({ data, isLoading, isRefetching }) => {
   if (isLoading || isRefetching) {
@@ -10,26 +11,20 @@ export const ProductList = ({ data, isLoading, isRefetching }) => {
     );
   }
 
+  
   return (
     <Layout>
-      {data?.products.length ? (
-        data.products.map((product) => (
-          <Layout.Section key={product.id}>
-            <ProductCard {...product}></ProductCard>
-          </Layout.Section>
-        ))
-      ) : (
-        <Layout.Section>
-          <Card>
-            <EmptyState
-              heading="No Products Found"
-              image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
-            >
-              <p>Add products using the card above</p>
-            </EmptyState>
-          </Card>
-        </Layout.Section>
-      )}
+      <Layout.Section>
+      <Card
+        sectioned
+        primaryFooterAction={{
+          content: "test",
+        }}
+      >
+        <p>{data.products.body.data.bulkOperationRunQuery.bulkOperation.id}</p>
+
+      </Card>
+      </Layout.Section>
     </Layout>
   );
 };

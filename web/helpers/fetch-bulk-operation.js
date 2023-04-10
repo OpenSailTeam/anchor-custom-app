@@ -1,30 +1,16 @@
 import { Shopify } from "@shopify/shopify-api";
 
-const FETCH_PRODUCTS_QUERY = `mutation {
-  bulkOperationRunQuery(
-   query: """
-   {
-    products {
-      edges {
-        node {
-          id
-          metafield (namespace: "custom" key: "recommendationHandles") {
-            value
-          }
-        }
-      }
-    }
-  }
-    """
-  ) {
-    bulkOperation {
-      id
-      status
-    }
-    userErrors {
-      field
-      message
-    }
+const FETCH_OPERATION_QUERY = `query {
+  currentBulkOperation {
+    id
+    status
+    errorCode
+    createdAt
+    completedAt
+    objectCount
+    fileSize
+    url
+    partialDataUrl
   }
 }
 `;
@@ -32,15 +18,16 @@ const FETCH_PRODUCTS_QUERY = `mutation {
 const formatGqlResponse = (res) => {
 
   return res;
+
 };
 
-export default async function fetchProducts(session) {
+export default async function fetchProductsOperation(session) {
   const client = new Shopify.Clients.Graphql(session.shop, session.accessToken);
 
   try {
     const res = await client.query({
       data: {
-        query: FETCH_PRODUCTS_QUERY,
+        query: FETCH_OPERATION_QUERY,
       },
     });
 
