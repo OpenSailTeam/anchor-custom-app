@@ -20,9 +20,13 @@ const SUBCRIBE_PRODUCTS_EXPORT_QUERY = `mutation ($url: URL!) {
 
 const formatGqlResponse = (res) => {
 
-  console.log("LOG: " + res?.body?.data?.webhookSubscriptionCreate.webhookSubscription.id);
+  console.log("response: ", res)
 
-  return res?.body?.data?.webhookSubscriptionCreate.webhookSubscription.id;
+  if (res?.body?.data?.webhookSubscriptionCreate.webhookSubscription) {
+    return res?.body?.data?.webhookSubscriptionCreate.webhookSubscription.id;
+  } else {
+    return
+  }
   
 };
 

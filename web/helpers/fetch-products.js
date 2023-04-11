@@ -8,7 +8,10 @@ const FETCH_PRODUCTS_QUERY = `mutation {
       edges {
         node {
           id
-          metafield (namespace: "custom" key: "recommendationHandles") {
+          relatedHandles: metafield (namespace: "custom" key: "recommendationHandles") {
+            value
+          }
+          handle: metafield (namespace: "custom" key: "MPNHandle") {
             value
           }
         }
