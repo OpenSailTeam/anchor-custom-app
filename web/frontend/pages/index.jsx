@@ -11,23 +11,43 @@ import {
   Heading,
   Button,
 } from "@shopify/polaris";
-import { TitleBar } from "@shopify/app-bridge-react";
 import { useAuthenticatedFetch } from "../hooks";
-
-import { ProductCard, ProductsCard } from "../components";
 import { useAppQuery } from "../hooks";
-import { ProductList } from "../components/ProductList";
 import { ActionCard } from "../components/ActionCard";
 
 export default function HomePage() {
+  const fetch = useAuthenticatedFetch();
 
   useAppQuery({
     url: "/api/webhook/subscribe/products/export",
   })
 
+  const onUpdate = async () => {
+    try {
+        const response = await fetch("/api/products", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          }
+        });
+        console.log(response);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
 
   return (
-    <Page title="Bulk updates dashboard">
+    <Page 
+    title="Bulk updates dashboard"
+    primaryAction={
+      {
+        content: 'Bulk fetch products',
+        onAction: onUpdate
+      }
+    }
+    >
       <Layout>
         <Layout.Section>
           <ActionCard></ActionCard>

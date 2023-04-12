@@ -144,18 +144,6 @@ export async function createServer(
     })
   );
 
-  app.get("/api/products", async (req, res) => {
-    const session = await Shopify.Utils.loadCurrentSession(
-      req,
-      res,
-      app.get("use-online-tokens")
-    );
-
-    const products = await fetchProducts(session);
-
-    res.status(200).send({ products });
-  });
-
   app.get("/api/products/count", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
@@ -258,6 +246,25 @@ export async function createServer(
       await subscribeProductsCreate(session, DEV_WEBHOOK_PATH);
     } catch (e) {
       console.log(`Failed to process /api/webhook/subscribe/products/create: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ success: status === 200, error });
+  });
+
+  app.get("/api/products", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+
+    try {
+      await fetchProducts(session);
+    } catch (e) {
+      console.log(`Failed to process /api/products: ${e.message}`);
       status = 500;
       error = e.message;
     }

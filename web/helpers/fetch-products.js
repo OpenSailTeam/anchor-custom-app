@@ -35,22 +35,15 @@ const FETCH_PRODUCTS_QUERY = `mutation {
 }
 `;
 
-const formatGqlResponse = (res) => {
-
-  return res;
-};
-
 export default async function fetchProducts(session) {
   const client = new Shopify.Clients.Graphql(session.shop, session.accessToken);
 
   try {
-    const res = await client.query({
+    await client.query({
       data: {
         query: FETCH_PRODUCTS_QUERY,
       },
     });
-
-    return formatGqlResponse(res);
   } catch (error) {
     if (error instanceof Shopify.Errors.GraphqlQueryError) {
       throw new Error(
