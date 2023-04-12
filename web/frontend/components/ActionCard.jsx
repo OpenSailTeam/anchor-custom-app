@@ -30,12 +30,11 @@ export function ActionCard() {
       {toastMarkup}
       
       <Card
-        title="Bulk Fetch"
+        title="Operations list"
         sectioned
         primaryFooterAction={{
           content: "New bulk fetch",
           onAction: handleNewBulkFetch,
-          //loading: isLoading,
         }}
         secondaryFooterActions={[
           {
@@ -49,18 +48,18 @@ export function ActionCard() {
             <NewOperationCard></NewOperationCard>
           </Card>
       ) : (
-        <Card>
-            <Layout><p>No new fetch operation</p></Layout>
-        </Card>
+
+            <></>
+
       )}
         {showCurrentOperation ? (
           <Card>
             <CurrentOperationCard></CurrentOperationCard>
           </Card>
       ) : (
-        <Card>
-            <Layout><p>No current fetch operation</p></Layout>
-        </Card>
+
+            <></>
+
       )}
       </Card>
     </>

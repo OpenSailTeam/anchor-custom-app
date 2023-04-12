@@ -9,6 +9,7 @@ import readAndModifyJsonlFile from "../../helpers/mutate-products";
 
 export const CurrentOperationCard = () => {
   const fetch = useAuthenticatedFetch();
+  const [isConverting, setIsConverting] = useState(false)
   const [convertStatus, setConvertStatus] = useState(false)
   const [convertedProducts, setConvertedProducts] = useState("")
   const [bulkStatus, setBulkStatus] = useState("");
@@ -45,8 +46,10 @@ export const CurrentOperationCard = () => {
   };
 
   const handleConvertClick = async () => {
+    setIsConverting(true)
     const products = await readAndModifyJsonlFile(bulkUrl);
     setConvertedProducts(products);
+    setIsConverting(false)
     setConvertStatus(true);
   };
   
@@ -78,33 +81,45 @@ export const CurrentOperationCard = () => {
   return (
     <>
       {bulkData?.data?.body?.data?.currentBulkOperation?.id ? (
-        <Card
-          sectioned
-        >
-          <p>
-            Status of {bulkData?.data?.body?.data?.currentBulkOperation?.id} is {bulkData?.data?.body?.data?.currentBulkOperation?.status}
-          </p>
-          {bulkStatus === "COMPLETED" ? (
-            <>
-            <Button onClick={handleDownloadClick}>Download JSON</Button>
-            <Button onClick={handleConvertClick}>Convert products</Button>
-            </>
-          
-          ) : (
-          <></>
-          )}
-          {convertStatus === true ? (
-            <Button onClick={onUpdate}>Push Products</Button>
-          
-          ) : (
-          <></>
-          )}
-        </Card>
+        bulkStatus === "COMPLETED" ? (
+          <Card sectioned
+           title="Fetch status"
+           primaryFooterAction={
+            {
+              content: "Convert products",
+              onAction: handleConvertClick,
+              loading: isConverting
+            }
+           }
+           secondaryFooterActions={[
+            {
+              content: "Download JSON",
+              onAction: handleDownloadClick
+            }
+           ]}>
+            <p>
+              Status of {bulkData?.data?.body?.data?.currentBulkOperation?.id} is{" "}
+              {bulkData?.data?.body?.data?.currentBulkOperation?.status}
+            </p>
+            {convertStatus === true ? (
+              <Button onClick={onUpdate}>Push Products</Button>
+            ) : (
+              <></>
+            )}
+          </Card>
+        ) : (
+          <Card sectioned title="Fetch status">
+            <p>
+              Status of {bulkData?.data?.body?.data?.currentBulkOperation?.id} is{" "}
+              {bulkData?.data?.body?.data?.currentBulkOperation?.status}
+            </p>
+          </Card>
+        )
       ) : (
-        <Card sectioned>
-          <p>Pinging current bulk operation...</p>
+        <Card sectioned title="Fetch status">
+          <p>Pinging current bulk fetch operation...</p>
         </Card>
       )}
     </>
-  );
+  );  
 };

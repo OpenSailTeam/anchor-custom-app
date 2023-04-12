@@ -13,6 +13,7 @@ export const NewOperationCard = () => {
       {bulkData?.products?.body?.data?.bulkOperationRunQuery?.bulkOperation
         .id ? (
         <Card
+          title="New fetch"
           sectioned
         >
           <p>
@@ -22,7 +23,9 @@ export const NewOperationCard = () => {
           </p>
         </Card>
       ) : (
-        <Card sectioned>
+        <Card sectioned
+        title="New fetch"
+        >
           <p>Generating Bulk Operation Id...</p>
         </Card>
       )}

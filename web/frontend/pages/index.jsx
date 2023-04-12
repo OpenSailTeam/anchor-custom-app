@@ -27,7 +27,7 @@ export default function HomePage() {
 
 
   return (
-    <Page title="Dashboard">
+    <Page title="Bulk updates dashboard">
       <Layout>
         <Layout.Section>
           <ActionCard></ActionCard>
