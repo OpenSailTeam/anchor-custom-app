@@ -20,6 +20,7 @@ import handleProductRecommendations from "./helpers/handle-product-recommendatio
 import fetchIdFromHandle from "./helpers/fetch-recommendation-handles.js";
 import subscribeProductsExport from "./helpers/subscribe-products-export.js";
 import fetchProductsOperation from "./helpers/fetch-bulk-operation.js";
+import pushProducts from "./helpers/push-products.js";
 
 
 

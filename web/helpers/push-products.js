@@ -1,6 +1,6 @@
 import { Shopify } from "@shopify/shopify-api";
 
-const FETCH_PRODUCTS_QUERY = `mutation {
+const PUSH_PRODUCTS_QUERY = `mutation {
   bulkOperationRunQuery(
    query: """
    {
@@ -40,13 +40,13 @@ const formatGqlResponse = (res) => {
   return res;
 };
 
-export default async function fetchProducts(session) {
+export default async function pushProducts(session) {
   const client = new Shopify.Clients.Graphql(session.shop, session.accessToken);
 
   try {
     const res = await client.query({
       data: {
-        query: FETCH_PRODUCTS_QUERY,
+        query: PUSH_PRODUCTS_QUERY,
       },
     });
 

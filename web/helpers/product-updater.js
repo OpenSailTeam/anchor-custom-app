@@ -1,29 +1,22 @@
 import { Shopify } from "@shopify/shopify-api";
 
 const UPDATE_PRODUCT_MUTATION = `
-mutation updateProduct($input: ProductInput!) {
-    productUpdate(input: $input) {
-      product {
-        id
-        descriptionHtml
-        title
-        variants (first: 10) {
-          edges {
-            node {
-              id
-              price
-            }
-          }
-        }
-      }
+mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+  metafieldsSet(metafields: $metafields) {
+    metafields {
+      key
+      value
+      namespace
+    }
+    userErrors {
+      field
+      message
     }
   }
+}
 `;
 
-export default async function productUpdater(
-  session,
-  { id, description, title, variants }
-) {
+export default async function productUpdater(session, productData) {
   const client = new Shopify.Clients.Graphql(session.shop, session.accessToken);
 
   try {
@@ -31,12 +24,22 @@ export default async function productUpdater(
       data: {
         query: UPDATE_PRODUCT_MUTATION,
         variables: {
-          input: {
-            id,
-            descriptionHtml: description,
-            title,
-            variants,
-          },
+          metafields: [
+            {
+              key: "complementary_products",
+              value: JSON.stringify(productData.complementaryHandles.value.split(",")),
+              type: "list.product_reference",
+              namespace: "shopify--discovery--product_recommendation",
+              ownerId: productData.id
+            },
+            {
+              key: "related_products",
+              value: JSON.stringify(productData.relatedHandles.value.split(",")),
+              type: "list.product_reference",
+              namespace: "shopify--discovery--product_recommendation",
+              ownerId: productData.id
+            }
+          ]
         },
       },
     });
@@ -49,4 +52,4 @@ export default async function productUpdater(
       throw error;
     }
   }
-}
+}  
