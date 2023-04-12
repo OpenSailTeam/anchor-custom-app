@@ -15,6 +15,7 @@
     "@apollo/client": "^3.7.11",
     "@shopify/app": "^3.45.0",
     "@shopify/cli": "^3.45.0",
+    "@shopify/polaris": "^10.43.0",
     "graphql": "^16.6.0",
     "https": "^1.0.0"
   },

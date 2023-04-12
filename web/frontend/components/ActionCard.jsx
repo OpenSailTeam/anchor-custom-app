@@ -1,73 +1,125 @@
-import { useState, useEffect } from "react";
-import { Card, Layout } from "@shopify/polaris";
-import { Toast, useNavigate } from "@shopify/app-bridge-react";
-import { NewOperationCard } from "./NewOperationCard";
-import { CurrentOperationCard } from "./CurrentOperationCard";
+import { useState, useEffect, useCallback } from "react";
+import { Card, Badge } from "@shopify/polaris";
+import { Toast } from "@shopify/app-bridge-react";
 import { useAppQuery } from "../hooks";
-
+import readAndModifyJsonlFile from "../../helpers/mutate-products";
+import { useAuthenticatedFetch } from "../hooks";
 
 export function ActionCard() {
-  const emptyToastProps = { content: null };
-  const [toastProps, setToastProps] = useState(emptyToastProps);
+  const fetch = useAuthenticatedFetch();
   const [showNewOperation, setShowNewOperation] = useState(false);
   const [showCurrentOperation, setShowCurrentOperation] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("");
+  const [isConverting, setIsConverting] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [convertStatus, setConvertStatus] = useState(false)
   const [bulkUrl, setBulkUrl] = useState("");
-  const { data: bulkData, isLoading: isBulkLoading, refetch: bulkRefetch } = useAppQuery({
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const toggleError = useCallback(() => setError((error) => !error), []);
+  const toastError = error ? (
+    <Toast content="An unexpected error occured. Shopify may have provided the wrong document." error onDismiss={toggleError} />
+  ) : null;
+  const [active, setActive] = useState(false);
+  const toggleActive = useCallback(() => setActive((active) => !active), []);
+  const toastMarkup = active ? (
+    <Toast content="Products updated successfully" onDismiss={toggleActive} />
+  ) : null;
+  const {
+    data: bulkData,
+    isLoading: isBulkLoading,
+    refetch: bulkRefetch,
+  } = useAppQuery({
     url: "/api/bulk/current",
   });
 
   useEffect(() => {
+    setIsLoading(true);
     const intervalId = setInterval(() => {
-      if (bulkData?.data?.body?.data?.currentBulkOperation?.status === "COMPLETED") {
+      setBulkStatus("COMPLETED");
+      if (
+        bulkData?.data?.body?.data?.currentBulkOperation?.status === "COMPLETED"
+      ) {
         setBulkStatus("COMPLETED");
+        setIsLoading(false);
         setBulkUrl(bulkData?.data?.body?.data?.currentBulkOperation?.url);
-        console.log("Finished")
         clearInterval(intervalId);
       } else {
-        console.log("In progress...");
         bulkRefetch();
       }
     }, 1000);
     return () => clearInterval(intervalId);
   }, [bulkData]);
 
-  const toastMarkup = toastProps.content && !isRefetchingCount && (
-    <Toast {...toastProps} onDismiss={() => setToastProps(emptyToastProps)} />
-  );
+  const handleDownloadClick = () => {
+    const url = bulkUrl;
+    if (url) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "data.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
 
-  const handleNewBulkFetch = () => {
-    setShowNewOperation(true);
-  }
-
-  const handleCurrentBulkFetch = () => {
-    setShowCurrentOperation(true);
-  }
-
+  const handleConvertClick = async () => {
+    setConvertStatus(false);
+    setIsConverting(true)
+    const products = await readAndModifyJsonlFile(bulkUrl);
+    try {
+      for (const product of products) {
+        const response = await fetch("/api/products/update", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: product,
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      }
+    } catch (error) {
+      toggleError();
+      console.error("Error updating products:", error);
+    }
+    setSuccess(true);
+    toggleActive();
+    setIsConverting(false)
+    setConvertStatus(true);
+  };
+  
+  const onUpdate = async () => {
+  
+  };
 
 
   return (
     <>
       {toastMarkup}
+      {toastError}
       
       <Card
-        title="Operations list"
+        title="Current operation"
         sectioned
         primaryFooterAction={{
-          content: "New bulk fetch",
-          onAction: handleNewBulkFetch,
+          content: "Convert and push changes",
+          onAction: handleConvertClick,
+          loading: isConverting,
+          disabled: isLoading
         }}
         secondaryFooterActions={[
           {
-            content: "Check current status",
-            onAction: handleCurrentBulkFetch,
+            content: "Download JSON",
+            onAction: handleDownloadClick,
+            disabled: isLoading
           },
         ]}
       >
-        <p>
-              Status of {bulkData?.data?.body?.data?.currentBulkOperation?.id} is{" "}
-              {bulkData?.data?.body?.data?.currentBulkOperation?.status}
-            </p>
+        <p>{bulkData?.data?.body?.data?.currentBulkOperation?.id}</p><br/>
+        <Badge>{bulkData?.data?.body?.data?.currentBulkOperation?.status}</Badge>
       </Card>
     </>
   );

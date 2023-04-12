@@ -252,25 +252,6 @@ export async function createServer(
     res.status(status).send({ success: status === 200, error });
   });
 
-  app.get("/api/products", async (req, res) => {
-    const session = await Shopify.Utils.loadCurrentSession(
-      req,
-      res,
-      app.get("use-online-tokens")
-    );
-    let status = 200;
-    let error = null;
-
-    try {
-      await fetchProducts(session);
-    } catch (e) {
-      console.log(`Failed to process /api/products: ${e.message}`);
-      status = 500;
-      error = e.message;
-    }
-    res.status(status).send({ success: status === 200, error });
-  });
-
   app.post("/api/products/update", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
@@ -284,6 +265,25 @@ export async function createServer(
       await productUpdater(session, req.body);
     } catch (e) {
       console.log(`Failed to process products/update: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ success: status === 200, error });
+  });
+
+  app.post("/api/products/bulk", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+
+    try {
+      await fetchProducts(session);
+    } catch (e) {
+      console.log(`Failed to process /api/products: ${e.message}`);
       status = 500;
       error = e.message;
     }
