@@ -1,17 +1,13 @@
 import { useState } from "react";
-import { Card, TextContainer } from "@shopify/polaris";
+import { Card, Layout } from "@shopify/polaris";
 import { Toast, useNavigate } from "@shopify/app-bridge-react";
-import { useAuthenticatedFetch } from "../hooks";
 import { NewOperationCard } from "./NewOperationCard";
 import { CurrentOperationCard } from "./CurrentOperationCard";
-import { Layout } from "@shopify/polaris";
 
 
 export function ActionCard() {
   const emptyToastProps = { content: null };
   const [toastProps, setToastProps] = useState(emptyToastProps);
-  const fetch = useAuthenticatedFetch();
-  const navigate = useNavigate();
   const [showNewOperation, setShowNewOperation] = useState(false);
   const [showCurrentOperation, setShowCurrentOperation] = useState(false);
 
