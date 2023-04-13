@@ -8,19 +8,13 @@ import { Shopify, LATEST_API_VERSION } from "@shopify/shopify-api";
 import applyAuthMiddleware from "./middleware/auth.js";
 import verifyRequest from "./middleware/verify-request.js";
 import { setupGDPRWebHooks } from "./gdpr.js";
-import productCreator from "./helpers/product-creator.js";
 import redirectToAuth from "./helpers/redirect-to-auth.js";
 import { BillingInterval } from "./helpers/ensure-billing.js";
 import { AppInstallations } from "./app_installations.js";
 import fetchProducts from "./helpers/fetch-products.js";
 import productUpdater from "./helpers/product-updater.js";
-import subscribeProductsUpdate from "./helpers/subscribe-products-update.js";
-import subscribeProductsCreate from "./helpers/subscribe-products-create.js";
-import handleProductRecommendations from "./helpers/handle-product-recommendations.js";
-import fetchIdFromHandle from "./helpers/fetch-recommendation-handles.js";
 import subscribeProductsExport from "./helpers/subscribe-products-export.js";
 import fetchProductsOperation from "./helpers/fetch-bulk-operation.js";
-import pushProducts from "./helpers/push-products.js";
 
 
 
@@ -64,27 +58,12 @@ Shopify.Webhooks.Registry.addHandler("APP_UNINSTALLED", {
   },
 });
 
-Shopify.Webhooks.Registry.addHandler("PRODUCTS_UPDATE", {
-  path: "/api/webhooks",
-  webhookHandler: async (_topic, shop, _body) => {
-    await console.log("products update webhook handled");
-  },
-});
-
-Shopify.Webhooks.Registry.addHandler("PRODUCTS_CREATE", {
-  path: "/api/webhooks",
-  webhookHandler: async (_topic, shop, _body) => {
-    await handleProductRecommendations(_body);
-  },
-});
-
 Shopify.Webhooks.Registry.addHandler("BULK_OPERATIONS_FINISH", {
   path: "/api/webhooks",
   webhookHandler: async (_topic, shop, _body) => {
     await console.log("products bulk webhook handled: " + _body);
   },
 });
-
 
 // The transactions with Shopify will always be marked as test transactions, unless NODE_ENV is production.
 // See the ensureBilling helper to learn more about billing in this template.
@@ -144,39 +123,6 @@ export async function createServer(
     })
   );
 
-  app.get("/api/products/count", async (req, res) => {
-    const session = await Shopify.Utils.loadCurrentSession(
-      req,
-      res,
-      app.get("use-online-tokens")
-    );
-    const { Product } = await import(
-      `@shopify/shopify-api/dist/rest-resources/${Shopify.Context.API_VERSION}/index.js`
-    );
-
-    const countData = await Product.count({ session });
-    res.status(200).send(countData);
-  });
-
-  app.get("/api/products/create", async (req, res) => {
-    const session = await Shopify.Utils.loadCurrentSession(
-      req,
-      res,
-      app.get("use-online-tokens")
-    );
-    let status = 200;
-    let error = null;
-
-    try {
-      await productCreator(session);
-    } catch (e) {
-      console.log(`Failed to process products/create: ${e.message}`);
-      status = 500;
-      error = e.message;
-    }
-    res.status(status).send({ success: status === 200, error });
-  });
-
   // All endpoints after this point will have access to a request.body
   // attribute, as a result of the express.json() middleware
   app.use(express.json());
@@ -208,44 +154,6 @@ export async function createServer(
       await subscribeProductsExport(session, DEV_WEBHOOK_PATH);
     } catch (e) {
       console.log(`Failed to process /api/webhook/subscribe/products/export: ${e.message}`);
-      status = 500;
-      error = e.message;
-    }
-    res.status(status).send({ success: status === 200, error });
-  });
-
-  app.get("/api/webhook/subscribe/products/update", async (req, res) => {
-    const session = await Shopify.Utils.loadCurrentSession(
-      req,
-      res,
-      app.get("use-online-tokens")
-    );
-    let status = 200;
-    let error = null;
-
-    try {
-      await subscribeProductsUpdate(session, DEV_WEBHOOK_PATH);
-    } catch (e) {
-      console.log(`Failed to process /api/webhook/subscribe/products/update: ${e.message}`);
-      status = 500;
-      error = e.message;
-    }
-    res.status(status).send({ success: status === 200, error });
-  });
-
-  app.get("/api/webhook/subscribe/products/create", async (req, res) => {
-    const session = await Shopify.Utils.loadCurrentSession(
-      req,
-      res,
-      app.get("use-online-tokens")
-    );
-    let status = 200;
-    let error = null;
-
-    try {
-      await subscribeProductsCreate(session, DEV_WEBHOOK_PATH);
-    } catch (e) {
-      console.log(`Failed to process /api/webhook/subscribe/products/create: ${e.message}`);
       status = 500;
       error = e.message;
     }

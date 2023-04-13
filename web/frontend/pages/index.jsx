@@ -1,15 +1,7 @@
 import { useState } from "react";
-import { useEffect } from "react";
 import {
-  Card,
   Page,
   Layout,
-  TextContainer,
-  Image,
-  Stack,
-  Link,
-  Heading,
-  Button,
   Spinner,
 } from "@shopify/polaris";
 import { useAuthenticatedFetch } from "../hooks";
@@ -20,11 +12,13 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const fetch = useAuthenticatedFetch();
 
+  //Establishes the webhook necessary to receive bulk product fetches
   useAppQuery({
     url: "/api/webhook/subscribe/products/export",
   })
 
-  const onUpdate = async () => {
+  //makes a bulk fetch request to the endpoint
+  const fetchBulk = async () => {
     setIsLoading(true);
     try {
         const response = await fetch("/api/products/bulk", {
@@ -46,7 +40,7 @@ export default function HomePage() {
     primaryAction={
       {
         content: 'Bulk fetch products',
-        onAction: onUpdate,
+        onAction: fetchBulk,
         loading: isLoading
       }
     }
