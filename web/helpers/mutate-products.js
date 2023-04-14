@@ -6,40 +6,57 @@ export default async function readAndModifyJsonlFile(url) {
 
     //convert each line to a JSON object and create a map/dictionary
     const idMap = {};
+    const missingRelated = {};
+    const missingComplementary = {};
+
     lines.forEach((line) => {
       const product = JSON.parse(line);
-      idMap[product.handle.value] = product.id;
+      if (product.handle) {
+        idMap[product.handle.value] = product.id;
+      }
     });
 
     //loop through each line and update the relatedHandles and complementaryHandles fields
     const updatedLines = lines.map((line) => {
       const product = JSON.parse(line);
-      console.log("product start", product);
-      console.log("");
 
-      const relatedHandles = product.relatedHandles.value.split(",");
-      console.log("relatedHandles", relatedHandles);
-      const updatedRelatedHandles = relatedHandles.map((handle) => {
-        return idMap[handle];
-      });
-      console.log("updatedRelatedHandles", updatedRelatedHandles);
-      product.relatedHandles.value = updatedRelatedHandles.join(",");
-      console.log("");
+      if (product.relatedHandles) {
+        const relatedHandles = product.relatedHandles.value.split(",");
+        const updatedRelatedHandles = relatedHandles.reduce((accumulator, handle) => {
+          if (idMap[handle]) {
+            accumulator.push(idMap[handle]);
+          } else {
+            if (!missingRelated[product.handle.value]) {
+              missingRelated[product.handle.value] = [];
+            }
+            missingRelated[product.handle.value].push(handle);
+          }
+          return accumulator;
+        }, []);
+        product.relatedHandles.value = updatedRelatedHandles.join(",");
+      }
 
-      const complementaryHandles = product.complementaryHandles.value.split(",");
-      console.log("complementaryHandles", complementaryHandles);
-      const updatedComplementaryHandles = complementaryHandles.map((handle) => {
-        return idMap[handle];
-      });
-      console.log("updatedComplementaryHandles", updatedComplementaryHandles);
-      product.complementaryHandles.value = updatedComplementaryHandles.join(",");
-      console.log("");
+      if (product.complementaryHandles) {
+        const complementaryHandles = product.complementaryHandles.value.split(",");
+        const updatedComplementaryHandles = complementaryHandles.reduce((accumulator, handle) => {
+          if (idMap[handle]) {
+            accumulator.push(idMap[handle]);
+          } else {
+            if (!missingComplementary[product.handle.value]) {
+              missingComplementary[product.handle.value] = [];
+            }
+            missingComplementary[product.handle.value].push(handle);
+          }
+          return accumulator;
+        }, []);
+        product.complementaryHandles.value = updatedComplementaryHandles.join(",");
+      }
 
-      console.log("product end", product);
-      console.log("");
-      console.log("");
       return JSON.stringify(product);
     });
+
+    console.log("Missing related: ", missingRelated);
+    console.log("Missing complementary: ", missingComplementary);
 
     return updatedLines;
 

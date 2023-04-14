@@ -19,6 +19,8 @@ mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
 export default async function productUpdater(session, productData) {
   const client = new Shopify.Clients.Graphql(session.shop, session.accessToken);
 
+
+
   try {
     await client.query({
       data: {
@@ -27,14 +29,14 @@ export default async function productUpdater(session, productData) {
           metafields: [
             {
               key: "complementary_products",
-              value: JSON.stringify(productData.complementaryHandles.value.split(",")),
+              value: productData.complementaryHandles ? (JSON.stringify(productData.complementaryHandles.value.split(","))) : (""),
               type: "list.product_reference",
               namespace: "shopify--discovery--product_recommendation",
               ownerId: productData.id
             },
             {
               key: "related_products",
-              value: JSON.stringify(productData.relatedHandles.value.split(",")),
+              value: productData.relatedHandles ? (JSON.stringify(productData.relatedHandles.value.split(","))) : (""),
               type: "list.product_reference",
               namespace: "shopify--discovery--product_recommendation",
               ownerId: productData.id

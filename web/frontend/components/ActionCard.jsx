@@ -105,11 +105,11 @@ export function ActionCard() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
       }
+      toggleActive();
     } catch (error) {
       toggleError();
       console.error("Error updating products:", error);
     }
-    toggleActive();
     setIsConverting(false)
   };
 
@@ -122,7 +122,7 @@ export function ActionCard() {
         title="Current operation"
         sectioned
         primaryFooterAction={{
-          content: "Convert and push changes",
+          content: "Update products",
           onAction: handleConvertClick,
           loading: isConverting,
           disabled: isLoading
