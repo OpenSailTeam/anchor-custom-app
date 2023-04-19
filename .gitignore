@@ -29,3 +29,6 @@ web/database.sqlite
 
 #vscode settings
 .vscode/*
+
+#fly config file
+*.toml
