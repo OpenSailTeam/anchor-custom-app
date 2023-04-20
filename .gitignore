@@ -32,3 +32,9 @@ web/database.sqlite
 
 #fly config file
 *.toml
+
+#https://anchor-custom-app.fly.dev/
+
+#https://anchor-custom-app.fly.dev/auth/callback
+#https://anchor-custom-app.fly.dev/auth/shopify/callback
+#https://anchor-custom-app.fly.dev/api/auth/callback

@@ -3,10 +3,12 @@ import {
   Page,
   Layout,
   Spinner,
+  Card,
 } from "@shopify/polaris";
 import { useAuthenticatedFetch } from "../hooks";
 import { useAppQuery } from "../hooks";
 import { ActionCard } from "../components/ActionCard";
+import { ConvertCard } from "../components/ConvertCard";
 
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +55,9 @@ export default function HomePage() {
           ) : (
             <ActionCard></ActionCard>
           )}
+        </Layout.Section>
+        <Layout.Section>
+          <ConvertCard></ConvertCard>
         </Layout.Section>
       </Layout>
     </Page>

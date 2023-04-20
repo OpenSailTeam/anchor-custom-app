@@ -30,14 +30,12 @@ export default async function productUpdater(session, productData) {
             {
               key: "complementary_products",
               value: productData.complementaryHandles ? (JSON.stringify(productData.complementaryHandles.value.split(","))) : (""),
-              type: "list.product_reference",
               namespace: "shopify--discovery--product_recommendation",
               ownerId: productData.id
             },
             {
               key: "related_products",
               value: productData.relatedHandles ? (JSON.stringify(productData.relatedHandles.value.split(","))) : (""),
-              type: "list.product_reference",
               namespace: "shopify--discovery--product_recommendation",
               ownerId: productData.id
             }

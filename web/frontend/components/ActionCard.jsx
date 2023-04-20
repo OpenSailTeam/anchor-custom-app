@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card, Badge } from "@shopify/polaris";
+import { Card, Badge, Stack } from "@shopify/polaris";
 import { Toast } from "@shopify/app-bridge-react";
 import { useAppQuery } from "../hooks";
 import readAndModifyJsonlFile from "../../helpers/mutate-products";
@@ -135,13 +135,15 @@ export function ActionCard() {
           },
         ]}
       >
-        <p>{bulkId}</p><br/>
+        <Stack vertical>
+        <p>{bulkId}</p>
 
         {bulkStatus === "Complete" ? (
           <Badge status="success">{bulkStatus}</Badge>
         ) : (
           <Badge>{bulkStatus}</Badge>
         )}
+        </Stack>
       </Card>
     </>
   );
